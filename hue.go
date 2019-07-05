@@ -8,7 +8,6 @@ import (
   "gopkg.in/alecthomas/kingpin.v2"
   "github.com/imroc/req"
   "bytes"
-  "regexp"
   "utils"
 )
 
@@ -37,15 +36,8 @@ type KitchenLightCommand struct {
   All bool
 }
 
-func parseSubCommandBool(subc *kingpin.ParseContext, expectedValue string) bool {
-  re := regexp.MustCompile(`\s`)
-  arr := re.Split(subc.String(), 2)
-
-  return arr[1] == expectedValue
-}
-
 func (lights *KitchenLightCommand) run(c *kingpin.ParseContext) error {
-  state := parseSubCommandBool(c, "on")
+  state := os.Args[2] == "on"
 
   for i:= 0; i < len(kitchenLights); i++ {
     url:= fmt.Sprintf("%slights/%d/state", url, kitchenLights[i])
