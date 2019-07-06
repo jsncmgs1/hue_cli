@@ -10,6 +10,9 @@ import (
   "bytes"
   "utils"
   "sync"
+  "encoding/json"
+  "strconv"
+  "strings"
 )
 
 var url string = os.Getenv("HUE_URL")
@@ -33,11 +36,11 @@ func configureLightCommand(app *kingpin.Application) {
   app.Command("lights", "Get light info").Action(c.run)
 }
 
-type KitchenLightCommand struct {
+type RoomLightCommand struct {
   All bool
 }
 
-func (lights *KitchenLightCommand) run(c *kingpin.ParseContext) error {
+func (lights *RoomLightCommand) run(c *kingpin.ParseContext) error {
   var wg sync.WaitGroup
   wg.Add(len(kitchenLights))
   state := os.Args[2] == "on"
@@ -55,16 +58,32 @@ func (lights *KitchenLightCommand) run(c *kingpin.ParseContext) error {
   return nil
 }
 
-func configureKitchenLightCommand(app *kingpin.Application) {
-  c := &KitchenLightCommand{}
-  kitchenCommand  := app.Command("kitchen", "Control Kitchen Lights")
-  kitchenCommand.Command("off", "turn kitchen lights off").Action(c.run)
-  kitchenCommand.Command("on", "turn kitchen lights on").Action(c.run)
+func configureRoomLightCommand(app *kingpin.Application) {
+  var result map[string]interface{}
+
+  c := &RoomLightCommand{}
+  groupsUrl := fmt.Sprintf("%sgroups", url)
+
+  resp, _ := http.Get(groupsUrl)
+  bodyBytes, _ := ioutil.ReadAll(resp.Body)
+  json.Unmarshal(bodyBytes, &result)
+
+  for i := 0; i < len(result); i++ {
+    first:= result[strconv.Itoa(i+1)].(map[string]interface{})
+    name := strings.ToLower(first["name"].(string))
+
+    on := fmt.Sprintf("Turn %s lights on", name)
+    off := fmt.Sprintf("Turn %s lights off", name)
+
+    roomCommand  := app.Command(name, "")
+    roomCommand.Command("off", on).Action(c.run)
+    roomCommand.Command("on", off).Action(c.run)
+  }
 }
 
 func configureCommands(app *kingpin.Application) {
   configureLightCommand(app)
-  configureKitchenLightCommand(app)
+  configureRoomLightCommand(app)
 }
 
 func main() {
