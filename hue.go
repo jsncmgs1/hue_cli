@@ -9,6 +9,7 @@ import (
   "github.com/imroc/req"
   "bytes"
   "utils"
+  "sync"
 )
 
 var url string = os.Getenv("HUE_URL")
@@ -37,14 +38,20 @@ type KitchenLightCommand struct {
 }
 
 func (lights *KitchenLightCommand) run(c *kingpin.ParseContext) error {
+  var wg sync.WaitGroup
+  wg.Add(len(kitchenLights))
   state := os.Args[2] == "on"
 
   for i:= 0; i < len(kitchenLights); i++ {
     url:= fmt.Sprintf("%slights/%d/state", url, kitchenLights[i])
     var jsonStr = []byte(fmt.Sprintf(`{"on":%t}`, state))
-    req.Put(url, bytes.NewBuffer(jsonStr))
+    go func() {
+      defer wg.Done()
+      req.Put(url, bytes.NewBuffer(jsonStr))
+    }()
   }
 
+  wg.Wait()
   return nil
 }
 
