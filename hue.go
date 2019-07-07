@@ -14,15 +14,43 @@ import (
   "strings"
 )
 
-var url string = os.Getenv("HUE_URL")
 
 type LightCommand struct {
   All bool
 }
 
+type RoomLightCommand struct {
+  All bool
+  LightGroup *Group
+}
+
+type Group struct {
+  Name string
+  Id string
+}
+
+type Client struct {
+}
+
+func(client *Client) Get(url string) (*http.Response, error) {
+  resp, err := http.Get(url)
+  return resp, err
+}
+
+var client = &Client{}
+
+var url string = os.Getenv("HUE_URL")
+
+func getLightsUrl() string {
+  return fmt.Sprintf("%slights", url)
+}
+
+func getGroupsUrl() string {
+  return fmt.Sprintf("%sgroups", url)
+}
+
 func (light *LightCommand) run(c *kingpin.ParseContext) error {
-  url := fmt.Sprintf("%slights", url)
-  resp, _ := http.Get(url)
+  resp, _ := client.Get(getLightsUrl())
   defer resp.Body.Close()
   bodyBytes, _ := ioutil.ReadAll(resp.Body)
   utils.PrettyPrint(bodyBytes)
@@ -34,14 +62,8 @@ func configureLightCommand(app *kingpin.Application) {
   app.Command("lights", "Get light info").Action(c.run)
 }
 
-type RoomLightCommand struct {
-  All bool
-  LightGroup *Group
-}
-
 func (lights *RoomLightCommand) run(c *kingpin.ParseContext) error {
   state := os.Args[2] == "on"
-  fmt.Println(lights.LightGroup)
   url:= fmt.Sprintf("%sgroups/%s/action", url, lights.LightGroup.Id)
   fmt.Println(url)
   var jsonStr = []byte(fmt.Sprintf(`{"on":%t}`, state))
@@ -49,23 +71,15 @@ func (lights *RoomLightCommand) run(c *kingpin.ParseContext) error {
   return nil
 }
 
-type Group struct {
-  Name string
-  Id string
-}
-
 func configureRoomsLightCommand(app *kingpin.Application) {
   var result map[string]interface{}
-
-  groupsUrl := fmt.Sprintf("%sgroups", url)
-
-  resp, _ := http.Get(groupsUrl)
+  resp, _ := client.Get(getGroupsUrl())
   defer resp.Body.Close()
-
   bodyBytes, _ := ioutil.ReadAll(resp.Body)
   json.Unmarshal(bodyBytes, &result)
 
   for i := 0; i < len(result); i++ {
+    fmt.Println("*******************")
     c := &RoomLightCommand{}
     id := strconv.Itoa(i+1)
     first:= result[id].(map[string]interface{})
