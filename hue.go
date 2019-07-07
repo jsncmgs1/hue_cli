@@ -58,6 +58,11 @@ func (lights *RoomLightCommand) run(c *kingpin.ParseContext) error {
   return nil
 }
 
+type Room struct {
+  name string
+  lightIds []string
+}
+
 func configureRoomLightCommand(app *kingpin.Application) {
   var result map[string]interface{}
 
@@ -71,7 +76,16 @@ func configureRoomLightCommand(app *kingpin.Application) {
   for i := 0; i < len(result); i++ {
     first:= result[strconv.Itoa(i+1)].(map[string]interface{})
     name := strings.ToLower(first["name"].(string))
+    lights := first["lights"].([]interface{})
+    length := len(lights)
+    lightsArr := make([]string, length)
 
+    for i := 0; i < length; i++ {
+      t, _ := lights[i].(string)
+      lightsArr[i] = t
+    }
+
+    room := &Room{lightIds: lightsArr, name: name}
     on := fmt.Sprintf("Turn %s lights on", name)
     off := fmt.Sprintf("Turn %s lights off", name)
 
