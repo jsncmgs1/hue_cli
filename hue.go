@@ -5,11 +5,11 @@ import (
   "fmt"
   "io/ioutil"
   "gopkg.in/alecthomas/kingpin.v2"
-  "utils"
-  httpClient "client"
   "encoding/json"
   "strconv"
   "strings"
+  "hue_cli/lib/utils"
+  httpClient "hue_cli/lib/client"
 )
 
 type LightCommand struct {
