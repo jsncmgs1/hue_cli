@@ -9,7 +9,7 @@ import (
   "strconv"
   "strings"
   "hue_cli/lib/utils"
-  httpClient "hue_cli/lib/client"
+   httpclient "hue_cli/lib/client"
 )
 
 type LightCommand struct {
@@ -38,7 +38,7 @@ func groupsActionUrl(groupId string) string {
   return fmt.Sprintf("%sgroups/%s/action", url, groupId)
 }
 
-var client = &httpClient.Client{}
+var client = &httpclient.Client{}
 
 func (light *LightCommand) run(c *kingpin.ParseContext) error {
   resp, _ := client.Get(getLightsUrl())
