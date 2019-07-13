@@ -3,8 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jsncmgs1/hue_cli/lib/utils"
-	"gopkg.in/alecthomas/kingpin.v2"
 	"io"
 	"io/ioutil"
 	"log"
@@ -12,6 +10,9 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/jsncmgs1/hue_cli/lib/utils"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 type LightCommand struct {
