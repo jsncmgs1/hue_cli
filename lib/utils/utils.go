@@ -1,13 +1,13 @@
 package utils
 
 import (
-  "fmt"
-  "bytes"
-  "encoding/json"
+	"bytes"
+	"encoding/json"
 )
 
-func PrettyPrint(jsonBytes []byte){
-  buf := new(bytes.Buffer)
-  json.Indent(buf, jsonBytes, "", "  ")
-  fmt.Println(buf)
+// PrettyPrintJSON is a helper for easily pretty printing JSON
+func PrettyPrintJSON(jsonBytes []byte) *bytes.Buffer {
+	buf := new(bytes.Buffer)
+	json.Indent(buf, jsonBytes, "", "  ")
+	return buf
 }

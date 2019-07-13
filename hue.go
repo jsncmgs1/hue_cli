@@ -15,8 +15,7 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-type LightCommand struct {
-}
+type LightCommand struct{}
 
 type RoomLightCommand struct {
 	LightGroup *Group
@@ -24,18 +23,10 @@ type RoomLightCommand struct {
 
 type Group struct {
 	Name string
-	Id   string
+	ID   string
 }
 
-var url string = os.Getenv("HUE_URL")
-
-func getLightsUrl() string {
-	return fmt.Sprintf("%slights", url)
-}
-
-func getGroupsUrl() string {
-	return fmt.Sprintf("%sgroups", url)
-}
+var url = os.Getenv("HUE_URL")
 
 func groupsActionUrl(groupId string) string {
 	return fmt.Sprintf("%sgroups/%s/action", url, groupId)
@@ -44,10 +35,14 @@ func groupsActionUrl(groupId string) string {
 var client = &http.Client{}
 
 func (light *LightCommand) run(c *kingpin.ParseContext) error {
-	resp, _ := client.Get(getLightsUrl())
+	url := fmt.Sprintf("%slights", url)
+	resp, err := client.Get(url)
+	if err != nil {
+		return err
+	}
 	defer resp.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(resp.Body)
-	utils.PrettyPrint(bodyBytes)
+	utils.PrettyPrintJSON(bodyBytes)
 	return nil
 }
 
@@ -63,7 +58,7 @@ func putRequest(url string, data io.Reader) {
 }
 func (lights *RoomLightCommand) run(c *kingpin.ParseContext) error {
 	state := os.Args[2] == "on"
-	url := groupsActionUrl(lights.LightGroup.Id)
+	url := fmt.Sprintf("%sgroups/%s/action", url, lights.LightGroup.ID)
 	jsonStr := fmt.Sprintf(`{"on":%t}`, state)
 	putRequest(url, strings.NewReader(jsonStr))
 	return nil
@@ -76,7 +71,8 @@ func configureLightCommand(app *kingpin.Application) {
 
 func configureRoomsLightCommand(app *kingpin.Application) {
 	var result map[string]interface{}
-	resp, _ := client.Get(getGroupsUrl())
+	url := fmt.Sprintf("%sgroups", url)
+	resp, _ := client.Get(url)
 	defer resp.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(resp.Body)
 	json.Unmarshal(bodyBytes, &result)
@@ -86,7 +82,7 @@ func configureRoomsLightCommand(app *kingpin.Application) {
 		id := strconv.Itoa(i + 1)
 		first := result[id].(map[string]interface{})
 		name := strings.ToLower(first["name"].(string))
-		c.LightGroup = &Group{Name: name, Id: id}
+		c.LightGroup = &Group{Name: name, ID: id}
 
 		on := fmt.Sprintf("Turn %s lights on", name)
 		off := fmt.Sprintf("Turn %s lights off", name)
