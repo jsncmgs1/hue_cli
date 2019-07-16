@@ -52,3 +52,7 @@ Commands:
 Run `hue_cli lights` to get the JSON for all of your lights.
 Run `hue_cli office on` to turn your office lights on.
 Run `hue_cli kitchen off` to turn your office kitchen on.
+
+## Future things
+
+Individual light control, scene control, dunno what else.
