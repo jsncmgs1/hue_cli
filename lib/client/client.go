@@ -6,25 +6,28 @@ import (
 	"net/http"
 )
 
-func New() *HueClient {
-	return &HueClient{&http.Client{}}
+var c *hueClient
+
+// New returns a hueClient, essentially a wrapper for http.Client
+// with a Put method.
+func New() *hueClient {
+	if c == nil {
+		c = &hueClient{http.Client{}}
+	}
+	return c
 }
 
-type HueClient struct {
-	*http.Client
+type hueClient struct {
+	http.Client
 }
 
-func (hc *HueClient) Put(url string, data io.Reader) {
+func (hc *hueClient) Put(url string, data io.Reader) (*http.Response, error) {
 	req, err := http.NewRequest(http.MethodPut, url, data)
 
 	if err != nil {
 		log.Fatal(err)
-		return
+		return nil, err
 	}
 
-	_, err = hc.Do(req)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
+	return hc.Do(req)
 }
