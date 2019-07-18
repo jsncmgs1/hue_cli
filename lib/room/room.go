@@ -27,9 +27,12 @@ type LightGroup struct {
 	ID   string
 }
 
+func hueURL(path string) string {
+	return fmt.Sprintf("%s%s", os.Getenv("HUE_URL"), path)
+}
+
 func (light *LightCommand) run(c *kingpin.ParseContext) error {
-	url := fmt.Sprintf("%slights", os.Getenv("HUE_URL"))
-	resp, err := client.Get(url)
+	resp, err := client.Get(hueURL("lights"))
 	if err != nil {
 		return err
 	}
@@ -54,16 +57,17 @@ func buildRoomCommand(app *kingpin.Application, result map[string]map[string]str
 
 func (lights *RoomLightCommand) run(c *kingpin.ParseContext) error {
 	state := os.Args[2] == "on"
-	url := fmt.Sprintf("%sgroups/%s/action", os.Getenv("HUE_URL"), lights.LightGroup.ID)
+	roomURL := hueURL(fmt.Sprintf("groups/%s/action", lights.LightGroup.ID))
 	jsonStr := fmt.Sprintf(`{"on":%t}`, state)
-	client.Put(url, strings.NewReader(jsonStr))
+	client.Put(roomURL, strings.NewReader(jsonStr))
 	return nil
 }
 
 func ConfigureRoomsLightCommand(app *kingpin.Application) error {
 	result := make(map[string]map[string]string)
-	url := fmt.Sprintf("%sgroups", os.Getenv("HUE_URL"))
-	resp, err := client.Get(url)
+	roomURL := hueURL("groups")
+
+	resp, err := client.Get(roomURL)
 	if err != nil {
 		return err
 	}
