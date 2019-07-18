@@ -1,14 +1,12 @@
 package room
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
+	"sort"
 	"strings"
 
 	hueclient "github.com/jsncmgs1/hue_cli/lib/client"
-	"github.com/jsncmgs1/hue_cli/lib/utils"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -16,7 +14,9 @@ var (
 	client = hueclient.New()
 )
 
-type LightCommand struct{}
+type LightCommand struct {
+	JSON bool
+}
 
 type RoomLightCommand struct {
 	LightGroup
@@ -32,18 +32,36 @@ func hueURL(path string) string {
 }
 
 func (light *LightCommand) run(c *kingpin.ParseContext) error {
-	resp, err := client.Get(hueURL("lights"))
-	if err != nil {
-		return err
+	resp := client.GetJSON(
+		hueURL("lights"),
+		make(map[string]map[string]string),
+	)
+	lights := make(map[string]string)
+
+	var ids []string
+	for id := range resp.Body {
+		ids = append(ids, id)
+		lights[id] = resp.Body[id]["name"]
 	}
-	defer resp.Body.Close()
-	bodyBytes, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println(utils.PrettyPrintJSON(bodyBytes))
+	sort.Strings(ids)
+
+	if resp.Error != nil {
+		return resp.Error
+	}
+
+	if light.JSON == true {
+		fmt.Println(resp.Body)
+	} else {
+		for lightID := range ids {
+			id := ids[lightID]
+			fmt.Printf("%s. %s\n", id, lights[id])
+		}
+	}
 	return nil
 }
 
-func buildRoomCommand(app *kingpin.Application, result map[string]map[string]string, id string) {
-	first := result[id]
+func buildRoomCommand(app *kingpin.Application, result hueclient.JSONResponse, id string) {
+	first := result.Body[id]
 	name := strings.ToLower(first["name"])
 	c := &RoomLightCommand{LightGroup{Name: name, ID: id}}
 
@@ -64,24 +82,25 @@ func (lights *RoomLightCommand) run(c *kingpin.ParseContext) error {
 }
 
 func ConfigureRoomsLightCommand(app *kingpin.Application) error {
-	result := make(map[string]map[string]string)
-	roomURL := hueURL("groups")
+	response := client.GetJSON(
+		hueURL("groups"),
+		make(map[string]map[string]string),
+	)
 
-	resp, err := client.Get(roomURL)
-	if err != nil {
-		return err
+	if response.Error != nil {
+		return response.Error
 	}
-	defer resp.Body.Close()
-	bodyBytes, _ := ioutil.ReadAll(resp.Body)
-	json.Unmarshal(bodyBytes, &result)
 
-	for id := range result {
-		buildRoomCommand(app, result, id)
+	for id := range response.Body {
+		buildRoomCommand(app, response, id)
 	}
+
 	return nil
 }
 
 func ConfigureLightCommand(app *kingpin.Application) {
-	c := &LightCommand{}
-	app.Command("lights", "Get light info").Action(c.run)
+	lc := &LightCommand{}
+	c := app.Command("lights", "Get light info")
+	c.Flag("json", "Returns JSON data for all lights").BoolVar(&lc.JSON)
+	c.Action(lc.run)
 }

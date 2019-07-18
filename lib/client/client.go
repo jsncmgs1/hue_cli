@@ -1,7 +1,9 @@
 package client
 
 import (
+	"encoding/json"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 )
@@ -30,4 +32,22 @@ func (hc *hueClient) Put(url string, data io.Reader) (*http.Response, error) {
 	}
 
 	return hc.Do(req)
+}
+
+type JSONResponse struct {
+	Error error
+	Body  map[string]map[string]string
+}
+
+func (hc *hueClient) GetJSON(url string, resultJSON map[string]map[string]string) JSONResponse {
+	response := JSONResponse{}
+	resp, err := hc.Get(url)
+	if err != nil {
+		response.Error = err
+	}
+	defer resp.Body.Close()
+	bodyBytes, _ := ioutil.ReadAll(resp.Body)
+	json.Unmarshal(bodyBytes, &resultJSON)
+	response.Body = resultJSON
+	return response
 }
