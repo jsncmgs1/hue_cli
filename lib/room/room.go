@@ -14,7 +14,6 @@ import (
 
 var (
 	client = hueclient.New()
-	url    = os.Getenv("HUE_URL")
 )
 
 type LightCommand struct{}
@@ -29,7 +28,7 @@ type LightGroup struct {
 }
 
 func (light *LightCommand) run(c *kingpin.ParseContext) error {
-	url := fmt.Sprintf("%slights", url)
+	url := fmt.Sprintf("%slights", os.Getenv("HUE_URL"))
 	resp, err := client.Get(url)
 	if err != nil {
 		return err
@@ -40,7 +39,7 @@ func (light *LightCommand) run(c *kingpin.ParseContext) error {
 	return nil
 }
 
-func BuildRoomCommand(app *kingpin.Application, result map[string]map[string]string, id string) {
+func buildRoomCommand(app *kingpin.Application, result map[string]map[string]string, id string) {
 	first := result[id]
 	name := strings.ToLower(first["name"])
 	c := &RoomLightCommand{LightGroup{Name: name, ID: id}}
@@ -55,7 +54,7 @@ func BuildRoomCommand(app *kingpin.Application, result map[string]map[string]str
 
 func (lights *RoomLightCommand) run(c *kingpin.ParseContext) error {
 	state := os.Args[2] == "on"
-	url := fmt.Sprintf("%sgroups/%s/action", url, lights.LightGroup.ID)
+	url := fmt.Sprintf("%sgroups/%s/action", os.Getenv("HUE_URL"), lights.LightGroup.ID)
 	jsonStr := fmt.Sprintf(`{"on":%t}`, state)
 	client.Put(url, strings.NewReader(jsonStr))
 	return nil
@@ -63,7 +62,7 @@ func (lights *RoomLightCommand) run(c *kingpin.ParseContext) error {
 
 func ConfigureRoomsLightCommand(app *kingpin.Application) error {
 	result := make(map[string]map[string]string)
-	url := fmt.Sprintf("%sgroups", url)
+	url := fmt.Sprintf("%sgroups", os.Getenv("HUE_URL"))
 	resp, err := client.Get(url)
 	if err != nil {
 		return err
@@ -73,7 +72,7 @@ func ConfigureRoomsLightCommand(app *kingpin.Application) error {
 	json.Unmarshal(bodyBytes, &result)
 
 	for id := range result {
-		BuildRoomCommand(app, result, id)
+		buildRoomCommand(app, result, id)
 	}
 	return nil
 }
