@@ -1,7 +1,7 @@
 # Phillips HUE CLI
 
 This is really just an excuse for me to learn Go in my off time. I would not
-depend on this library for anything serious. Proceed with caution. 
+depend on this library for anything serious. Proceed with caution.
 I have not run this on Windows or Linux.
 
 ## Setup
@@ -11,19 +11,20 @@ This prodject users GOMODULES. No need to clone to your GOPATH.
 1. Make sure your `GOBIN` is correctly setup.
 2. Follow https://developers.meethue.com/develop/get-started-2/ and get your UserId and the bridge IP.
 3. `export HUE_CLI=http://<BRIDGE IP>/api/<YOUR IP>/` in your shell config.
-2. `$go install .`
+4. `$ go build -o hue`
+5. `$ go install hue.go`
 
 
 ## Useage
 
 ```bash
-$ hue_cli
+$ hue
 ```
 
 Shows you available rooms set up on your bridge. Pretend you have a kitchen and office:
 
 ```bash
-$ hue_cli
+$ hue
 usage: hue [<flags>] <command> [<args> ...]
 
 Phillips Hue CLI
@@ -51,9 +52,9 @@ Commands:
     Turn kitchen lights off
 ```
 
-Run `hue_cli lights` to get the JSON for all of your lights.
-Run `hue_cli office on` to turn your office lights on.
-Run `hue_cli kitchen off` to turn your office kitchen on.
+Run `hue lights` to get the JSON for all of your lights.
+Run `hue office on` to turn your office lights on.
+Run `hue kitchen off` to turn your office kitchen on.
 
 ## Future things
 
