@@ -54,7 +54,7 @@ Commands:
 
 Run `hue lights` to get the JSON for all of your lights.
 Run `hue office on` to turn your office lights on.
-Run `hue kitchen off` to turn your office kitchen on.
+Run `hue kitchen off` to turn your kitchen lights off.
 
 ## Future things
 
