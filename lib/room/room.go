@@ -3,10 +3,10 @@ package room
 import (
 	"fmt"
 	"os"
-	"sort"
 	"strings"
 
 	hueclient "github.com/jsncmgs1/hue_cli/lib/client"
+	"github.com/jsncmgs1/hue_cli/lib/utils"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -38,12 +38,9 @@ func (light *LightCommand) run(c *kingpin.ParseContext) error {
 	)
 	lights := make(map[string]string)
 
-	var ids []string
 	for id := range resp.Body {
-		ids = append(ids, id)
 		lights[id] = resp.Body[id]["name"]
 	}
-	sort.Strings(ids)
 
 	if resp.Error != nil {
 		return resp.Error
@@ -52,10 +49,7 @@ func (light *LightCommand) run(c *kingpin.ParseContext) error {
 	if light.JSON == true {
 		fmt.Println(resp.Body)
 	} else {
-		for lightID := range ids {
-			id := ids[lightID]
-			fmt.Printf("%s. %s\n", id, lights[id])
-		}
+		utils.PrintSortedMap(lights)
 	}
 	return nil
 }
