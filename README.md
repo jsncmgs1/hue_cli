@@ -6,7 +6,7 @@ I have not run this on Windows or Linux.
 
 ## Setup
 
-This prodject users GOMODULES. No need to clone to your GOPATH.
+This project uses GOMODULES. No need to clone to your GOPATH.
 
 1. Make sure your `GOBIN` is correctly setup.
 2. Follow https://developers.meethue.com/develop/get-started-2/ and get your UserId and the bridge IP.
